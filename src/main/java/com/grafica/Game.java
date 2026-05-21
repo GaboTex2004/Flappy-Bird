@@ -13,6 +13,7 @@ public class Game {
 
     private Bird jugador1;
     private Bird jugador2;
+    private Bird jugador3;
     private List<Pipe> tuberias;
     private Random random;
 
@@ -52,9 +53,10 @@ public class Game {
     
     private void reset() {
         // J1 Amarillo
-        jugador1 = new Bird(-0.45f, 0.0f, 0.98f, 0.85f, 0.20f); 
+        jugador1 = new Bird(-0.45f, 0.4f, 0.98f, 0.85f, 0.20f); 
         // J2 Azul/Celeste, un poco más atrás para que no se superpongan exactamente al inicio
-        jugador2 = new Bird(-0.55f, 0.0f, 0.20f, 0.60f, 0.98f);
+        jugador2 = new Bird(-0.55f, 0.3f, 0.20f, 0.60f, 0.98f);
+        jugador3 = new Bird(-0.35f, 0.5f, 0.80f, 0.50f, 0.98f);
 
         velocidadActual = VELOCIDAD_BASE;
         tuberias.clear();
@@ -112,6 +114,7 @@ public class Game {
             }
             if (input.isSpacePressed() && !jugador1.isDead) jugador1.saltar();
             if (input.isWOrUpPressed() && !jugador2.isDead) jugador2.saltar();
+            if (input.isTPressed() && !jugador3.isDead) jugador3.saltar();
         } else if (estadoActual == ESTADO_PAUSA) {
             if (input.isSpacePressed() || input.isEnterPressed()) {
                 estadoActual = ESTADO_JUGANDO;
@@ -136,6 +139,10 @@ public class Game {
         if (!jugador2.isDead && jugador2.fueraDeLimites()) {
             jugador2.isDead = true;
         }
+        jugador3.actualizar(dt);
+        if (!jugador3.isDead && jugador3.fueraDeLimites()) {
+            jugador3.isDead = true;
+        }
         if(jugador2.isDead&& jugador2.x>-1.75f){
             jugador2.x-=0.004f;
         }
@@ -143,7 +150,7 @@ public class Game {
             jugador1.x-=0.004f;
         }
         
-        if (jugador1.isDead && jugador2.isDead && estadoActual != ESTADO_GAMEOVER) {
+        if (jugador1.isDead && jugador2.isDead &&jugador3.isDead && estadoActual != ESTADO_GAMEOVER) {
             estadoActual = ESTADO_GAMEOVER;
             actualizarTitulo();
         }
@@ -175,10 +182,15 @@ public class Game {
                 t.puntuadaJ2 = true;
                 actualizarTitulo(); 
             }
+            if (!jugador3.isDead && t.x + (Pipe.ANCHO / 2) < jugador3.x && !t.puntuadaJ2) {
+                jugador3.puntaje++;
+                t.puntuadaJ2 = true;
+                actualizarTitulo(); 
+            }
 
             if (!jugador1.isDead && colisiona(jugador1, t)) jugador1.isDead = true;
             if (!jugador2.isDead && colisiona(jugador2, t)) jugador2.isDead = true;
-
+            if (!jugador3.isDead && colisiona(jugador3, t)) jugador3.isDead = true;
             if (t.x + (Pipe.ANCHO / 2) < -1.3f) it.remove();
         }
 
@@ -234,7 +246,8 @@ public class Game {
             renderer.dibujarTuberias(tuberias);
             renderer.dibujarPajaro(jugador1);
             renderer.dibujarPajaro(jugador2);
-            renderer.dibujarPuntajes(jugador1.puntaje, jugador2.puntaje);
+            renderer.dibujarPajaro(jugador3);
+            renderer.dibujarPuntajes(jugador1.puntaje, jugador2.puntaje, jugador3.puntaje);
             
             // Dibujar nivel en el centro superior
             renderer.dibujarTextura(texNivelActual, 0.0f, 0.8f, 0.35f, 0.15f);
@@ -243,20 +256,24 @@ public class Game {
                 renderer.dibujarMenuPausa();
             } else if (estadoActual == ESTADO_GAMEOVER) {
                 renderer.dibujarOverlayMuerte();
-                if(jugador1.puntaje > jugador2.puntaje)
+                if(jugador1.puntaje > jugador2.puntaje&&jugador1.puntaje > jugador3.puntaje)
                     juego = Texture.generarTexto("Gano jugador 1 gano con "+jugador1.puntaje+" puntos", 32, java.awt.Color.WHITE, true);
-                else if(jugador2.puntaje > jugador1.puntaje)
+                else if(jugador2.puntaje > jugador1.puntaje && jugador2.puntaje > jugador3.puntaje)
                     juego = Texture.generarTexto("Gano jugador 2 gano con "+jugador2.puntaje+" puntos", 32, java.awt.Color.WHITE, true);
+                else if(jugador3.puntaje > jugador2.puntaje && jugador3.puntaje > jugador1.puntaje)
+                    juego = Texture.generarTexto("Gano jugador 3 gano con "+jugador3.puntaje+" puntos", 32, java.awt.Color.WHITE, true);
                 else 
                     juego = Texture.generarTexto("Empate", 32, java.awt.Color.WHITE, true);
                 renderer.dibujarTextura(juego, 0.0f, 0.0f, 2f, 0.32f);
+            }else if(jugador1.puntaje == 5 ||jugador2.puntaje == 5 || jugador3.puntaje == 5 ){
+                estadoActual = ESTADO_GAMEOVER;
             }
         }
     }
 
     private void actualizarTitulo() {
-        if (jugador1 == null || jugador2 == null) return;
-        String titulo = "J1 (Amarillo): " + jugador1.puntaje + " | J2 (Azul): " + jugador2.puntaje;
+        if (jugador1 == null || jugador2 == null || jugador3==null) return;
+        String titulo = "J1 (Amarillo): " + jugador1.puntaje + " | J2 (Azul): " + jugador2.puntaje + "| j3(violeta): "+ jugador3.puntaje;
         if (estadoActual == ESTADO_MENU) GLFW.glfwSetWindowTitle(window, "Flappy Bird Geométrico - Menú");
         else if (estadoActual == ESTADO_GAMEOVER) GLFW.glfwSetWindowTitle(window, titulo + " | GAME OVER");
         else if (estadoActual == ESTADO_PAUSA) GLFW.glfwSetWindowTitle(window, titulo + " | PAUSA");

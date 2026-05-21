@@ -54,4 +54,8 @@ public class InputManager {
         prevDown = downAhora;
         return result;
     }
+
+    public boolean isTPressed() {
+        return GLFW.glfwGetKey(window, GLFW.GLFW_KEY_T) == GLFW.GLFW_PRESS;
+    }
 }

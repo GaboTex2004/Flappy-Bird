@@ -405,9 +405,10 @@ public class Renderer {
         }
     }
 
-    public void dibujarPuntajes(int p1, int p2) {
+    public void dibujarPuntajes(int p1, int p2, int p3) {
         dibujarNumero(p1, -0.8f, 0.8f, 0.1f, 0.15f, 0.98f, 0.85f, 0.20f);
         dibujarNumero(p2, 0.8f, 0.8f, 0.1f, 0.15f, 0.20f, 0.60f, 0.98f);
+        dibujarNumero(p3, 0.3f, 0.8f, 0.1f, 0.15f, 0.00f, 0.00f, 0.98f);
     }
 
     public void dibujarMenuInicio(int opcion) {
